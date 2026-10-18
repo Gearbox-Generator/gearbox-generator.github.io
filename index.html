@@ -1,0 +1,715 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Involute Gear Bench</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: drafting bench — parameter rail on the left, live meshing canvas on the right, spec sheet and export below. */
+:root{
+  --paper:#F1F3F0; --sheet:#FAFBF9; --ink:#1E2A2F; --ink-2:#56656C; --rule:#D3D9D6;
+  --brass:#C08A3E; --steel:#7D909A; --bronze:#9C6B4E; --ringc:#5E7A6B; --accent:#2E6E8C; --warn:#B4582A; --ok:#3C7A55;
+  --grid:rgba(46,110,140,.09);
+  --f-display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --f-body:"Barlow",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#141B1E; --sheet:#1B2428; --ink:#E3E9E7; --ink-2:#98A7AD; --rule:#2E3B40;
+  --brass:#D9A55A; --steel:#93A8B3; --bronze:#C08A6A; --ringc:#7FA08E; --accent:#6FB2D2; --warn:#E08A5C; --ok:#79BE90;
+  --grid:rgba(111,178,210,.08); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#141B1E; --sheet:#1B2428; --ink:#E3E9E7; --ink-2:#98A7AD; --rule:#2E3B40;
+  --brass:#D9A55A; --steel:#93A8B3; --bronze:#C08A6A; --ringc:#7FA08E; --accent:#6FB2D2; --warn:#E08A5C; --ok:#79BE90;
+  --grid:rgba(111,178,210,.08); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 20px;border-bottom:2px solid var(--ink);padding-bottom:10px}
+h1{font-family:var(--f-display);font-weight:700;font-size:2rem;letter-spacing:.02em;margin:0;text-transform:uppercase;text-wrap:balance}
+header p{margin:0;color:var(--ink-2);font-size:.92rem;max-width:62ch}
+.modes{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--ink);border-radius:3px;overflow:hidden;width:max-content;max-width:100%}
+.modes button{border:0;border-radius:0;border-right:1px solid var(--ink)}
+.modes button:last-child{border-right:0}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.bench{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px}
+@media (max-width:820px){.bench{grid-template-columns:1fr}}
+.rail{display:grid;gap:14px;align-content:start}
+fieldset{border:1px solid var(--rule);background:var(--sheet);border-radius:4px;margin:0;padding:12px 14px 14px;display:grid;gap:10px;min-width:0}
+legend{font-family:var(--f-display);font-weight:600;text-transform:uppercase;letter-spacing:.08em;font-size:.85rem;padding:0 6px;color:var(--ink-2)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:0}
+.row{display:grid;grid-template-columns:1fr 92px;gap:8px;align-items:center}
+.row label{font-size:.88rem;color:var(--ink-2)}
+.row label b{color:var(--ink);font-weight:500}
+.sub{font-size:.8rem;color:var(--ink-2);margin:-4px 0 0}
+input[type=number],select,output.val{width:100%;font:500 .9rem var(--f-mono);color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:3px;padding:5px 6px;font-variant-numeric:tabular-nums}
+output.val{display:block;background:transparent;border-style:dashed}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button{font:600 .82rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;background:var(--sheet);color:var(--ink);border:1px solid var(--ink);border-radius:3px;padding:7px 11px;cursor:pointer}
+button:hover{background:var(--ink);color:var(--sheet)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--sheet)}
+button.primary:hover{filter:brightness(1.1);background:var(--accent)}
+.stage{position:relative;background:var(--sheet);border:1px solid var(--rule);border-radius:4px;min-width:0;overflow:hidden;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+canvas{display:block;width:100%;height:560px;max-width:100%}
+@media (max-width:820px){canvas{height:400px}}
+.stagebar{position:absolute;left:10px;right:10px;bottom:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;pointer-events:none}
+.stagebar>*{pointer-events:auto}
+.chip{font:500 .78rem var(--f-mono);background:var(--paper);border:1px solid var(--rule);border-radius:3px;padding:4px 8px;color:var(--ink-2)}
+.chip.warn{color:var(--warn);border-color:var(--warn)}
+.chip.ok{color:var(--ok);border-color:var(--ok)}
+.layers{position:absolute;top:10px;left:10px;display:flex;flex-wrap:wrap;gap:6px}
+.layers label{font:500 .76rem var(--f-mono);background:var(--paper);border:1px solid var(--rule);border-radius:3px;padding:3px 7px;display:flex;gap:5px;align-items:center;cursor:pointer;color:var(--ink-2)}
+.specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:18px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:12px 14px;min-width:0}
+.card h2{font-family:var(--f-display);font-weight:600;font-size:1.05rem;text-transform:uppercase;letter-spacing:.08em;margin:0 0 8px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:5px 4px;border-bottom:1px solid var(--rule);text-align:right;font:400 .85rem var(--f-mono);white-space:nowrap}
+th{font:600 .74rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+td:first-child,th:first-child{text-align:left;font-family:var(--f-body);font-size:.88rem;color:var(--ink-2)}
+td.span{text-align:left}
+.notes{margin:10px 0 0;padding-left:18px;color:var(--ink-2);font-size:.86rem;display:grid;gap:4px}
+.notes li.w{color:var(--warn)}
+textarea{width:100%;height:130px;font:400 .72rem var(--f-mono);color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:3px;padding:6px;resize:vertical;margin-top:10px}
+.toast{min-height:1.2em;font:500 .8rem var(--f-mono);color:var(--ok);margin-top:6px}
+.hint{font-size:.84rem;color:var(--ink-2);margin:0}
+.exrow{display:grid;gap:8px;margin-top:10px}
+.fhead{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline;justify-content:space-between}
+.fhead h2{margin:0}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px 12px;margin:12px 0}
+.fcell{display:grid;gap:4px;min-width:0}
+.fcell label{font-size:.8rem;color:var(--ink-2)}
+.fscroll{overflow:auto;max-height:420px;margin-top:8px;border-top:1px solid var(--rule)}
+#fTable th{position:sticky;top:0;background:var(--sheet)}
+#fTable tr.cur td{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+#fTable td.err{color:var(--ink-2)}
+#fTable td.exact{color:var(--ok)}
+#fTable button{padding:3px 9px;font-size:.74rem}
+.empty{padding:16px 0;color:var(--ink-2);font-size:.9rem}
+.exlabel{font:600 .74rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Involute Gear Bench</h1>
+    <p>Spur pairs, internal ring gears and planetary sets. Check the fit, then copy each part out as DXF or SVG in millimetres.</p>
+  </header>
+
+  <div class="modes" role="group" aria-label="Configuration">
+    <button type="button" data-mode="spur" aria-pressed="false">Spur pair</button>
+    <button type="button" data-mode="internal" aria-pressed="false">Ring + pinion</button>
+    <button type="button" data-mode="planet" aria-pressed="true">Planetary</button>
+  </div>
+
+  <div class="bench">
+    <div class="rail">
+      <fieldset>
+        <legend>Tooth system</legend>
+        <div class="row"><label for="mod"><b>Module</b> m, mm</label><input id="mod" type="number" step="0.1" min="0.3" max="20" value="1.5"></div>
+        <div class="row"><label for="pa"><b>Pressure angle</b> α</label>
+          <select id="pa"><option value="14.5">14.5°</option><option value="20" selected>20°</option><option value="25">25°</option></select></div>
+        <div class="row"><label for="bl"><b>Backlash</b>, mm</label><input id="bl" type="number" step="0.01" min="0" max="1" value="0.05"></div>
+        <div class="row"><label for="clr"><b>Clearance</b> × m</label><input id="clr" type="number" step="0.05" min="0" max="0.5" value="0.25"></div>
+      </fieldset>
+
+      <fieldset data-for="spur" hidden>
+        <legend><span class="sw" style="background:var(--brass)"></span>Gear A (input)</legend>
+        <div class="row"><label for="n1"><b>Teeth</b></label><input id="n1" type="number" min="6" max="300" value="18"></div>
+        <div class="row"><label for="b1"><b>Bore Ø</b>, mm</label><input id="b1" type="number" step="0.5" min="0" value="8"></div>
+      </fieldset>
+      <fieldset data-for="spur" hidden>
+        <legend><span class="sw" style="background:var(--steel)"></span>Gear B</legend>
+        <div class="row"><label for="n2"><b>Teeth</b></label><input id="n2" type="number" min="6" max="300" value="36"></div>
+        <div class="row"><label for="b2"><b>Bore Ø</b>, mm</label><input id="b2" type="number" step="0.5" min="0" value="10"></div>
+      </fieldset>
+
+      <fieldset data-for="internal" hidden>
+        <legend><span class="sw" style="background:var(--brass)"></span>Pinion (input)</legend>
+        <div class="row"><label for="zpi"><b>Teeth</b></label><input id="zpi" type="number" min="6" max="300" value="18"></div>
+        <div class="row"><label for="bpi"><b>Bore Ø</b>, mm</label><input id="bpi" type="number" step="0.5" min="0" value="6"></div>
+      </fieldset>
+      <fieldset data-for="internal" hidden>
+        <legend><span class="sw" style="background:var(--ringc)"></span>Ring gear</legend>
+        <div class="row"><label for="zri"><b>Teeth</b></label><input id="zri" type="number" min="12" max="400" value="48"></div>
+        <div class="row"><label for="odi"><b>Ring OD</b>, mm</label><input id="odi" type="number" step="0.5" min="5" value="88"></div>
+        <p class="sub" id="wallNoteI"></p>
+      </fieldset>
+
+      <fieldset data-for="planet">
+        <legend><span class="sw" style="background:var(--brass)"></span>Sun</legend>
+        <div class="row"><label for="zs"><b>Teeth</b></label><input id="zs" type="number" min="6" max="300" value="24"></div>
+        <div class="row"><label for="bs"><b>Bore Ø</b>, mm</label><input id="bs" type="number" step="0.5" min="0" value="8"></div>
+      </fieldset>
+      <fieldset data-for="planet">
+        <legend><span class="sw" style="background:var(--steel)"></span>Planets</legend>
+        <div class="row"><label for="zp"><b>Teeth</b></label><input id="zp" type="number" min="6" max="300" value="18"></div>
+        <div class="row"><label for="np"><b>Count</b></label><input id="np" type="number" min="1" max="12" value="3"></div>
+        <div class="row"><label for="bp"><b>Pin bore Ø</b>, mm</label><input id="bp" type="number" step="0.5" min="0" value="5"></div>
+      </fieldset>
+      <fieldset data-for="planet">
+        <legend><span class="sw" style="background:var(--ringc)"></span>Ring and carrier</legend>
+        <div class="row"><label for="zr"><b>Ring teeth</b></label><output class="val" id="zr" for="zs zp">60</output></div>
+        <p class="sub">Set by sun + 2 × planet so all three share one centre.</p>
+        <div class="row"><label for="od"><b>Ring OD</b>, mm</label><input id="od" type="number" step="0.5" min="5" value="106"></div>
+        <p class="sub" id="wallNote"></p>
+        <div class="row"><label for="fix"><b>Held still</b></label>
+          <select id="fix"><option value="ring" selected>Ring</option><option value="carrier">Carrier</option><option value="sun">Sun</option></select></div>
+        <p class="sub" id="fixNote"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Motion</legend>
+        <div class="row"><label for="rpm"><b>Input speed</b>, rpm</label><input id="rpm" type="number" step="1" min="0" max="120" value="6"></div>
+        <div class="btns"><button id="play" class="primary" type="button">Pause</button><button id="step" type="button">Step ½ tooth</button></div>
+      </fieldset>
+    </div>
+
+    <div class="stage">
+      <canvas id="cv" aria-label="Gear set preview"></canvas>
+      <div class="layers">
+        <label><input id="lPitch" type="checkbox" checked>pitch</label>
+        <label><input id="lBase" type="checkbox">base</label>
+        <label id="lLoAwrap"><input id="lLoA" type="checkbox" checked>line of action</label>
+      </div>
+      <div class="stagebar">
+        <span class="chip" id="ratioChip"></span>
+        <span class="chip" id="statusChip"></span>
+      </div>
+    </div>
+  </div>
+
+  <section class="card finder" id="finder">
+    <div class="fhead">
+      <h2>Set finder</h2>
+      <p class="hint" id="fIntro"></p>
+    </div>
+    <div class="fgrid">
+      <div class="fcell"><label for="fOd">Ring OD, mm</label><input id="fOd" type="number" step="0.5" min="5" value="106"></div>
+      <div class="fcell"><label for="fRatio">Target ratio</label><input id="fRatio" type="number" step="0.1" min="1.01" value="4"></div>
+      <div class="fcell"><label for="fTol">Tolerance, %</label><input id="fTol" type="number" step="0.5" min="0" value="3"></div>
+      <div class="fcell"><label for="fWall">Min rim wall, mm</label><input id="fWall" type="number" step="0.5" min="0.5" value="4"></div>
+      <div class="fcell"><label for="fMinZ">Min teeth</label><input id="fMinZ" type="number" min="6" value="17"></div>
+      <div class="fcell" data-fp><label for="fNmin">Planets, min</label><input id="fNmin" type="number" min="1" max="12" value="3"></div>
+      <div class="fcell" data-fp><label for="fNmax">Planets, max</label><input id="fNmax" type="number" min="1" max="12" value="5"></div>
+      <div class="fcell"><label for="fMod">Module</label><select id="fMod"><option value="std" selected>Any standard</option><option value="cur">Current only</option></select></div>
+    </div>
+    <p class="hint" id="fSummary" role="status"></p>
+    <div class="fscroll"><table id="fTable"></table></div>
+  </section>
+
+  <div class="specs">
+    <div class="card">
+      <h2>Spec sheet</h2>
+      <div style="overflow-x:auto"><table id="spec"></table></div>
+      <ul class="notes" id="notes"></ul>
+    </div>
+    <div class="card">
+      <h2>Export</h2>
+      <p class="hint">Single parts are centred on the origin. Assemblies are placed as shown, at the current pose, one layer per part. DXF is R12 polylines and circles, which Fusion, SolidWorks, LibreCAD, VCarve and most laser software open directly. Paste into a file ending in .dxf or .svg.</p>
+      <div class="exrow">
+        <div class="btns" style="align-items:center">
+          <div class="row" style="grid-template-columns:auto 130px"><label for="fmt"><b>Format</b></label>
+            <select id="fmt"><option value="dxf" selected>DXF (R12)</option><option value="svg">SVG</option></select></div>
+          <div class="row" style="grid-template-columns:auto 150px"><label for="act"><b>Action</b></label>
+            <select id="act"><option value="download" selected>Download file</option><option value="copy">Copy text</option></select></div>
+        </div>
+        <p class="hint" id="dlNote">DXF files download inside a .zip; unzip it to get the .dxf.</p>
+        <div class="btns"><button type="button" class="primary" id="dlAll">Download all parts (.zip)</button></div>
+        <span class="exlabel">Parts</span>
+        <div class="btns" id="exParts"></div>
+        <span class="exlabel">Layouts</span>
+        <div class="btns" id="exAsm"></div>
+      </div>
+      <textarea id="out" readonly aria-label="Exported file text" placeholder="Pick a part above. The file text lands here and on your clipboard."></textarea>
+      <div class="toast" id="toast" role="status"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const cv=$('cv'),ctx=cv.getContext('2d');
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const inv=a=>Math.tan(a)-a;
+const TAU=Math.PI*2;
+const num=(id,def,min)=>{const v=+$(id).value;return isFinite(v)&&$(id).value!==''?Math.max(min??-Infinity,v):def;};
+const int=(id,def,min)=>Math.round(num(id,def,min));
+let mode='planet';
+
+// ---------- geometry ----------
+function extGear(N,P){
+  const {m,a,bl,c}=P;
+  const rp=m*N/2, rb=rp*Math.cos(a), ra=rp+m, rf=Math.max(0.2*rp,rp-(1+c)*m);
+  const halfB=Math.PI/(2*N)+inv(a)-(bl/2)/(2*rp);
+  const r0=Math.max(rb,rf), fl=[];
+  for(let i=0;i<=16;i++){const r=r0+(ra-r0)*i/16;const p=halfB-inv(Math.acos(Math.min(1,rb/r)));if(p>0)fl.push([r,p]);}
+  const pitch=TAU/N, pts=[];
+  const startPhi=fl[0][1], tipPhi=fl[fl.length-1][1];
+  for(let k=0;k<N;k++){
+    const c0=k*pitch;
+    arc(pts,rf,c0-pitch/2,c0-startPhi,4);
+    for(const [r,p] of fl) pts.push(pol(r,c0-p));
+    arc(pts,ra,c0-tipPhi,c0+tipPhi,4,true);
+    for(let i=fl.length-1;i>=0;i--) pts.push(pol(fl[i][0],c0+fl[i][1]));
+    arc(pts,rf,c0+startPhi,c0+pitch/2,4);
+  }
+  const rootGap=rf*(pitch-2*startPhi);
+  return {kind:'ext',N,rp,rb,ra,rf,pts,rootGap};
+}
+function intGear(N,P,od){
+  const {m,a,bl,c}=P;
+  const rp=m*N/2, rb=rp*Math.cos(a), ra=rp-m, rf=rp+(1+c)*m;
+  const half=r=>Math.max(0,Math.PI/(2*N)+inv(a)-(r>rb?inv(Math.acos(rb/r)):0)+(bl/2)/(2*rp));
+  const fl=[]; if(ra<rb) fl.push([ra,half(rb)]);
+  const r0=Math.max(ra,rb);
+  for(let i=0;i<=16;i++){const r=r0+(rf-r0)*i/16;fl.push([r,half(r)]);}
+  const pitch=TAU/N, pts=[];
+  for(let k=0;k<N;k++){
+    const g=k*pitch;
+    for(const [r,h] of fl) pts.push(pol(r,g-h));
+    const hr=fl[fl.length-1][1];
+    if(hr>0) arc(pts,rf,g-hr,g+hr,3,true);
+    for(let i=fl.length-1;i>=0;i--) pts.push(pol(fl[i][0],g+fl[i][1]));
+    const h0=fl[0][1];
+    arc(pts,ra,g+h0,g+pitch-h0,4,true);
+  }
+  const rootGap=2*rf*fl[fl.length-1][1];
+  return {kind:'int',N,rp,rb,ra,rf,pts,rootGap,outerR:Math.max(od/2,rf+0.05*m),wall:od/2-rf};
+}
+function pol(r,t){return [r*Math.cos(t),r*Math.sin(t)];}
+function arc(out,r,a1,a2,n,skipEnds){for(let j=skipEnds?1:0;j<=(skipEnds?n-1:n);j++){const t=a1+(a2-a1)*j/n;out.push(pol(r,t));}}
+
+// ---------- configuration ----------
+let S={};
+function common(){return {m:num('mod',1.5,0.3),a:+$('pa').value*Math.PI/180,bl:num('bl',0,0),c:num('clr',0.25,0)};}
+
+function build(){
+  const P=common(); const notes=[]; let bad=false;
+  const warn=t=>{notes.push({t,w:true});bad=true;}; const info=t=>notes.push({t,w:false});
+  const minN=Math.ceil(2/Math.sin(P.a)**2);
+  const cr=(ra1,rb1,ra2,rb2,d)=>(Math.sqrt(ra1*ra1-rb1*rb1)+Math.sqrt(ra2*ra2-rb2*rb2)-d*Math.sin(P.a))/(Math.PI*P.m*Math.cos(P.a));
+  const crInt=(gp,gr,d)=>{const rr=Math.max(gr.ra,gr.rb);return (Math.sqrt(gp.ra**2-gp.rb**2)-Math.sqrt(rr*rr-gr.rb**2)+d*Math.sin(P.a))/(Math.PI*P.m*Math.cos(P.a));};
+  const intGapMin={14.5:16,20:12,25:10}[$('pa').value];
+  const parts=[], uniq=[], rows=[], summary=[];
+  const under=(name,N)=>{if(N<minN)warn(`${name}: ${N} teeth is below ${minN}, the undercut limit at ${$('pa').value}°. A hobbed part will have thinned roots; this drawn profile will interfere slightly near the root.`);};
+  const wallChk=(R,noteId)=>{
+    const w=R.wall;
+    $(noteId).textContent=w>0?`Rim wall under the tooth roots: ${w.toFixed(2)} mm.`:`OD is inside the tooth roots by ${(-w).toFixed(2)} mm.`;
+    if(w<=0)warn(`Ring OD is smaller than the ring's root Ø of ${(R.rf*2).toFixed(2)} mm. Raise the OD, or use fewer ring teeth or a smaller module.`);
+    else if(w<1.5*P.m)warn(`Ring rim wall is only ${w.toFixed(2)} mm, under 1.5 × module. It may crack or flex.`);
+  };
+  const boreChk=(name,g,b)=>{if(b>0&&b>=g.rf*2-2*P.m)warn(`${name}: the ${b} mm bore leaves less than one module of web under the teeth.`);};
+
+  if(mode==='spur'){
+    const n1=int('n1',18,6),n2=int('n2',36,6),b1=num('b1',0,0),b2=num('b2',0,0);
+    const A=extGear(n1,P),B=extGear(n2,P),cd=P.m*(n1+n2)/2;
+    parts.push({id:'A',name:'Gear A',g:A,cx:0,cy:0,bore:b1,col:'--brass'},{id:'B',name:'Gear B',g:B,cx:cd,cy:0,bore:b2,col:'--steel'});
+    uniq.push(parts[0],parts[1]);
+    S.motion=t=>({A:t,B:Math.PI+Math.PI/n2-t*n1/n2});
+    S.inputN=n1;
+    const c=cr(A.ra,A.rb,B.ra,B.rb,cd);
+    summary.push(['Centre distance',cd.toFixed(3)+' mm'],['Ratio',`${(n2/n1).toFixed(4)} : 1, reversing`],['Contact ratio',c.toFixed(3)]);
+    under('Gear A',n1);under('Gear B',n2);boreChk('Gear A',A,b1);boreChk('Gear B',B,b2);
+    if(c<1.2)warn(`Contact ratio ${c.toFixed(2)} is low. Aim for 1.2 or more.`);
+    S.ratio=n1/n2; S.outName='Gear B'; S.lines=[{c1:[0,0],g1:A,c2:[cd,0],g2:B}];
+  }
+  else if(mode==='internal'){
+    const zp=int('zpi',18,6),zr=int('zri',48,12),bp=num('bpi',0,0),od=num('odi',88,5);
+    const Pn=extGear(zp,P),R=intGear(zr,P,od),cd=P.m*(zr-zp)/2;
+    wallChk(R,'wallNoteI');
+    parts.push({id:'R',name:'Ring',g:R,cx:0,cy:0,bore:0,col:'--ringc'},{id:'P',name:'Pinion',g:Pn,cx:cd,cy:0,bore:bp,col:'--brass'});
+    uniq.push(parts[1],parts[0]);
+    S.motion=t=>({P:t,R:t*zp/zr});
+    S.inputN=zp;
+    const c=zr>zp?crInt(Pn,R,cd):0;
+    summary.push(['Centre distance',cd.toFixed(3)+' mm'],['Ratio',`${(zr/zp).toFixed(4)} : 1, same direction`],['Contact ratio',c.toFixed(3)]);
+    under('Pinion',zp);boreChk('Pinion',Pn,bp);
+    if(zr-zp<intGapMin)warn(`Ring minus pinion is ${zr-zp} teeth. Below about ${intGapMin} at ${$('pa').value}°, tip interference between ring and pinion is likely; add teeth to the ring or use a profile shift.`);
+    if(R.ra<R.rb)info(`Ring tips sit inside its base circle, so the last part of each ring tooth is drawn radial. That is normal for small rings.`);
+    S.ratio=zp/zr; S.outName='Ring'; S.lines=null;
+  }
+  else{
+    const zs=int('zs',24,6),zp=int('zp',18,6),n=int('np',3,1),bs=num('bs',0,0),bp=num('bp',0,0),od=num('od',106,5);
+    const zr=zs+2*zp; $('zr').value=zr;
+    const Sg=extGear(zs,P),Pg=extGear(zp,P),Rg=intGear(zr,P,od),ac=P.m*(zs+zp)/2;
+    wallChk(Rg,'wallNote');
+    parts.push({id:'R',name:'Ring',g:Rg,cx:0,cy:0,bore:0,col:'--ringc'});
+    parts.push({id:'S',name:'Sun',g:Sg,cx:0,cy:0,bore:bs,col:'--brass'});
+    for(let i=0;i<n;i++) parts.push({id:'P'+i,name:'Planet',g:Pg,cx:0,cy:0,bore:bp,col:'--steel',planet:i});
+    uniq.push(parts[1],parts[2],parts[0]);
+    const fix=$('fix').value, Kc=(Math.PI+Math.PI/zp)*zp/zr;
+    S.motion=t=>{
+      let ts,tc;
+      if(fix==='ring'){ts=t;tc=t*zs/(zs+zr);}
+      else if(fix==='carrier'){ts=t;tc=0;}
+      else {ts=0;tc=t*zr/(zr+zs);}
+      const o={S:ts,C:tc};
+      for(let i=0;i<n;i++){const ph=tc+TAU*i/n;o['P'+i]=ph+Math.PI+Math.PI/zp-(ts-ph)*zs/zp;o['p'+i]=ph;}
+      o.R=tc+(o.P0-tc)*zp/zr;
+      return o;
+    };
+    S.inputN = fix==='sun'?zr:zs;
+    S.carrier={r:ac,n,pin:bp,od:2*(ac+Math.max(bp,3*P.m)),hub:bs};
+    let ratio,label;
+    if(fix==='ring'){ratio=(zs+zr)/zs;label=`Sun in, carrier out: ${ratio.toFixed(4)} : 1, same direction`;S.outName='Carrier';}
+    else if(fix==='carrier'){ratio=zr/zs;label=`Sun in, ring out: ${ratio.toFixed(4)} : 1, reversing`;S.outName='Ring';}
+    else {ratio=(zs+zr)/zr;label=`Ring in, carrier out: ${ratio.toFixed(4)} : 1, same direction`;S.outName='Carrier';}
+    S.ratio=1/ratio;
+    $('fixNote').textContent={ring:'Sun drives, carrier is the output. Highest reduction.',carrier:'Sun drives, ring is the output. Planets spin in place (star layout).',sun:'Ring drives, carrier is the output. Mild reduction.'}[fix];
+    const c1=cr(Sg.ra,Sg.rb,Pg.ra,Pg.rb,ac), c2=crInt(Pg,Rg,ac);
+    summary.push(['Carrier radius',ac.toFixed(3)+' mm'],['Ratio',label],['Contact, sun–planet',c1.toFixed(3)],['Contact, planet–ring',c2.toFixed(3)]);
+    const asm=(zs+zr)/n;
+    if(Math.abs(asm-Math.round(asm))>1e-9) warn(`(sun + ring) ÷ planets = ${(zs+zr)}/${n} = ${asm.toFixed(3)}, not a whole number, so ${n} planets cannot be evenly spaced and still mesh. Only the first planet is phased to the ring. Try ${[2,3,4,5,6].filter(k=>(zs+zr)%k===0).join(', ')||'a different count'} planets, or change a tooth count.`);
+    else info(`Assembly check passes: (${zs} + ${zr}) ÷ ${n} = ${asm}. Planets can be evenly spaced.`);
+    if(n>1){const clear=2*ac*Math.sin(Math.PI/n)-2*Pg.ra; if(clear<=0.5*P.m)warn(`Neighbouring planets ${clear<=0?'overlap':'nearly touch'} (tip clearance ${clear.toFixed(2)} mm). Use fewer or smaller planets.`); else summary.push(['Planet tip clearance',clear.toFixed(2)+' mm']);}
+    under('Sun',zs);under('Planet',zp);boreChk('Sun',Sg,bs);boreChk('Planet',Pg,bp);
+    if(zr-zp<intGapMin)warn(`Ring minus planet is ${zr-zp} teeth; below about ${intGapMin}, ring tip interference is likely.`);
+    if(Math.min(c1,c2)<1.2)warn(`A contact ratio under 1.2 will run rough.`);
+    S.lines=null;
+  }
+
+  // spec table
+  const f=v=>v.toFixed(3);
+  const cols=uniq.map(p=>p.name+(p.planet!==undefined&&S.carrier&&S.carrier.n>1?` ×${S.carrier.n}`:''));
+  const r=(label,fn)=>`<tr><td>${label}</td>${uniq.map(p=>`<td>${fn(p)}</td>`).join('')}</tr>`;
+  let h=`<thead><tr><th>Dimension</th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+  h+=r('Teeth',p=>p.g.N)+r('Type',p=>p.g.kind==='int'?'internal':'external')+r('Pitch Ø',p=>f(p.g.rp*2))
+    +r('Tip Ø',p=>f(p.g.ra*2))+r('Root Ø',p=>f(p.g.rf*2))+r('Base Ø',p=>f(p.g.rb*2))
+    +r('Bore / OD',p=>p.g.kind==='int'?'OD '+f(p.g.outerR*2):(p.bore?f(p.bore):'—'))
+    +r('Root gap',p=>f(p.g.rootGap));
+  if(S.carrier&&mode==='planet')h+=`<tr><td>Carrier plate</td><td class="span" colspan="${uniq.length}">OD ${f(S.carrier.od)}, ${S.carrier.n} pin holes Ø${f(S.carrier.pin)} on ${f(S.carrier.r*2)} PCD</td></tr>`;
+  summary.forEach(([k,v])=>h+=`<tr><td>${k}</td><td class="span" colspan="${uniq.length}">${v}</td></tr>`);
+  $('spec').innerHTML=h+'</tbody>';
+  const tight=uniq.reduce((a,p)=>p.g.rootGap<a.g.rootGap?p:a);
+  info(`Tightest root gap is ${tight.g.rootGap.toFixed(2)} mm on the ${tight.name.toLowerCase()}. Cut the roots with an end mill smaller than that${tight.g.kind==='int'?'; the ring\'s internal corners will also need EDM, broaching, or a small-diameter finishing pass':''}.`);
+  $('notes').innerHTML=notes.map(n=>`<li class="${n.w?'w':''}">${n.t}</li>`).join('');
+  const st=$('statusChip'); st.textContent=bad?'check notes':'mesh ok'; st.className='chip '+(bad?'warn':'ok');
+  S.parts=parts; S.uniq=uniq; S.P=P;
+  $('lLoAwrap').hidden=mode!=='spur';
+  rpmChip(); buildExportButtons(); fitView();
+  if(mode!=='spur'&&document.activeElement!==$('fOd'))$('fOd').value=$(mode==='internal'?'odi':'od').value;
+  finder();
+}
+function rpmChip(){const rpm=num('rpm',0,0);$('ratioChip').textContent=`input ${rpm} rpm → ${S.outName.toLowerCase()} ${(rpm*Math.abs(S.ratio)).toFixed(2)} rpm`;}
+
+// ---------- view ----------
+let view={s:1,ox:0,oy:0},dpr=1;
+function extent(p){return p.g.kind==='int'?p.g.outerR:p.g.ra;}
+function fitView(){
+  const r=cv.getBoundingClientRect(); dpr=window.devicePixelRatio||1;
+  cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
+  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+  for(const p of placed(0)){const e=extent(p);x0=Math.min(x0,p.cx-e);x1=Math.max(x1,p.cx+e);y0=Math.min(y0,p.cy-e);y1=Math.max(y1,p.cy+e);}
+  view.s=Math.min((r.width-36)/(x1-x0),(r.height-90)/(y1-y0));
+  view.ox=r.width/2-(x0+x1)/2*view.s; view.oy=r.height/2-12+(y0+y1)/2*view.s;
+  draw();
+}
+let theta=0,playing=!matchMedia('(prefers-reduced-motion: reduce)').matches,last=null;
+
+// parts with positions and rotations for input angle t
+function placed(t){
+  const o=S.motion(t);
+  return S.parts.map(p=>{
+    let cx=p.cx,cy=p.cy;
+    if(p.planet!==undefined){const ph=o['p'+p.planet];cx=S.carrier.r*Math.cos(ph);cy=S.carrier.r*Math.sin(ph);}
+    return {...p,cx,cy,rot:o[p.id]};
+  });
+}
+const X=x=>view.ox+x*view.s, Y=y=>view.oy-y*view.s;
+function tracePts(pts,cx,cy,rot){const c=Math.cos(rot),s=Math.sin(rot);
+  pts.forEach(([x,y],i)=>{const px=X(cx+x*c-y*s),py=Y(cy+x*s+y*c);i?ctx.lineTo(px,py):ctx.moveTo(px,py);});ctx.closePath();}
+function ring(cx,cy,r,ccw){ctx.moveTo(X(cx)+r*view.s,Y(cy));ctx.arc(X(cx),Y(cy),r*view.s,0,TAU,ccw);}
+function circ(cx,cy,r,col,dash,w){ctx.beginPath();ctx.setLineDash(dash||[]);ctx.lineWidth=w||1;ctx.strokeStyle=col;ctx.arc(X(cx),Y(cy),r*view.s,0,TAU);ctx.stroke();ctx.setLineDash([]);ctx.lineWidth=1;}
+
+function draw(){
+  if(!S.parts)return;
+  const W=cv.width/dpr,H=cv.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  const ink=css('--ink'),ink2=css('--ink-2'),acc=css('--accent');
+  const ps=placed(theta);
+  for(const p of ps){
+    ctx.beginPath();
+    if(p.g.kind==='int'){ring(p.cx,p.cy,p.g.outerR,false);tracePts(p.g.pts,p.cx,p.cy,p.rot);}
+    else{tracePts(p.g.pts,p.cx,p.cy,p.rot);if(p.bore>0)ring(p.cx,p.cy,p.bore/2,true);}
+    ctx.fillStyle=css(p.col);ctx.globalAlpha=.9;ctx.fill('evenodd');ctx.globalAlpha=1;
+    ctx.strokeStyle=ink;ctx.lineWidth=1;ctx.stroke();
+    // index mark
+    const rIn=p.g.kind==='int'?p.g.rf:0, rOut=p.g.kind==='int'?p.g.outerR:p.g.rf*.75;
+    ctx.beginPath();ctx.moveTo(X(p.cx+Math.cos(p.rot)*rIn),Y(p.cy+Math.sin(p.rot)*rIn));
+    ctx.lineTo(X(p.cx+Math.cos(p.rot)*rOut),Y(p.cy+Math.sin(p.rot)*rOut));
+    ctx.strokeStyle=ink;ctx.lineWidth=1.6;ctx.stroke();ctx.lineWidth=1;
+    if(p.g.kind==='ext'){ctx.beginPath();ctx.arc(X(p.cx),Y(p.cy),2.4,0,TAU);ctx.fillStyle=ink;ctx.fill();}
+  }
+  if($('lPitch').checked)ps.forEach(p=>circ(p.cx,p.cy,p.g.rp,acc,[5,4]));
+  if($('lBase').checked)ps.forEach(p=>circ(p.cx,p.cy,p.g.rb,ink2,[2,3]));
+  // carrier
+  if(mode==='planet'){
+    const o=S.motion(theta),C=S.carrier;
+    ctx.save();ctx.globalAlpha=.55;ctx.strokeStyle=ink;ctx.lineCap='round';ctx.lineWidth=Math.max(3,Math.min(10,C.pin*view.s*.9));
+    ctx.beginPath();
+    for(let i=0;i<C.n;i++){const ph=o['p'+i];ctx.moveTo(X(0),Y(0));ctx.lineTo(X(C.r*Math.cos(ph)),Y(C.r*Math.sin(ph)));}
+    ctx.stroke();ctx.restore();
+    for(let i=0;i<C.n;i++){const ph=o['p'+i];ctx.beginPath();ctx.arc(X(C.r*Math.cos(ph)),Y(C.r*Math.sin(ph)),3,0,TAU);ctx.fillStyle=css('--warn');ctx.fill();}
+    ctx.font='500 11px "IBM Plex Mono", monospace';ctx.fillStyle=ink2;
+    ctx.fillText(`carrier ${(o.C*180/Math.PI%360).toFixed(0)}°`,10,H-44);
+  }
+  if(mode==='spur'&&$('lLoA').checked&&S.lines){
+    const {c1,g1,c2,g2}=S.lines[0],a=S.P.a;
+    const T1=[c1[0]+g1.rb*Math.sin(a),c1[1]+g1.rb*Math.cos(a)],T2=[c2[0]-g2.rb*Math.sin(a),c2[1]-g2.rb*Math.cos(a)];
+    ctx.beginPath();ctx.moveTo(X(T1[0]),Y(T1[1]));ctx.lineTo(X(T2[0]),Y(T2[1]));ctx.strokeStyle=css('--warn');ctx.lineWidth=1.25;ctx.stroke();ctx.lineWidth=1;
+    const px=c1[0]+g1.rp;ctx.beginPath();ctx.arc(X(px),Y(0),3,0,TAU);ctx.fillStyle=css('--warn');ctx.fill();
+    ctx.font='500 11px "IBM Plex Mono", monospace';ctx.fillStyle=ink2;ctx.fillText(`α ${$('pa').value}°`,X(px)+6,Y(0)-8);
+  }
+}
+function tick(ts){if(playing&&last!=null){theta+=(ts-last)/1000*num('rpm',0,0)/60*TAU;draw();}last=ts;requestAnimationFrame(tick);}
+
+// ---------- export ----------
+// Entities: {t:'poly',layer,pts} | {t:'circle',layer,cx,cy,r}
+function partEntities(p,pose){
+  const layer=(p.name+(p.planet!==undefined?'_'+(p.planet+1):'')).toUpperCase();
+  const cx=pose?p.cx:0,cy=pose?p.cy:0,rot=pose?p.rot:0,c=Math.cos(rot),s=Math.sin(rot);
+  const pts=p.g.pts.map(([x,y])=>[cx+x*c-y*s,cy+x*s+y*c]);
+  const e=[{t:'poly',layer,pts}];
+  if(p.g.kind==='int')e.push({t:'circle',layer,cx,cy,r:p.g.outerR});
+  else if(p.bore>0)e.push({t:'circle',layer:layer,cx,cy,r:p.bore/2});
+  return e;
+}
+function carrierEntities(pose){
+  const C=S.carrier,o=pose?S.motion(theta):{C:0},e=[{t:'circle',layer:'CARRIER',cx:0,cy:0,r:C.od/2}];
+  if(C.hub>0)e.push({t:'circle',layer:'CARRIER',cx:0,cy:0,r:C.hub/2});
+  for(let i=0;i<C.n;i++){const ph=o.C+TAU*i/C.n;if(C.pin>0)e.push({t:'circle',layer:'CARRIER',cx:C.r*Math.cos(ph),cy:C.r*Math.sin(ph),r:C.pin/2});}
+  return e;
+}
+const n5=v=>(Math.abs(v)<1e-9?0:v).toFixed(5);
+function toDxf(ents){
+  const L=['0','SECTION','2','HEADER','9','$ACADVER','1','AC1009','9','$INSUNITS','70','4','9','$MEASUREMENT','70','1','0','ENDSEC'];
+  const layers=[...new Set(ents.map(e=>e.layer))];
+  L.push('0','SECTION','2','TABLES','0','TABLE','2','LAYER','70',String(layers.length));
+  layers.forEach((l,i)=>L.push('0','LAYER','2',l,'70','0','62',String(i%7+1),'6','CONTINUOUS'));
+  L.push('0','ENDTAB','0','ENDSEC','0','SECTION','2','ENTITIES');
+  for(const e of ents){
+    if(e.t==='circle')L.push('0','CIRCLE','8',e.layer,'10',n5(e.cx),'20',n5(e.cy),'30','0','40',n5(e.r));
+    else{L.push('0','POLYLINE','8',e.layer,'66','1','70','1','10','0','20','0','30','0');
+      for(const [x,y] of e.pts)L.push('0','VERTEX','8',e.layer,'10',n5(x),'20',n5(y),'30','0');
+      L.push('0','SEQEND','8',e.layer);}
+  }
+  L.push('0','ENDSEC','0','EOF');return L.join('\n')+'\n';
+}
+function toSvg(ents,note){
+  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+  const grow=(x,y)=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);};
+  ents.forEach(e=>e.t==='circle'?(grow(e.cx-e.r,e.cy-e.r),grow(e.cx+e.r,e.cy+e.r)):e.pts.forEach(p=>grow(...p)));
+  const pad=1,w=x1-x0+2*pad,h=y1-y0+2*pad;
+  const groups={};ents.forEach(e=>(groups[e.layer]=groups[e.layer]||[]).push(e));
+  let body='';
+  for(const [layer,es] of Object.entries(groups)){
+    body+=`<g id="${layer}" fill="none" stroke="#000" stroke-width="0.1">\n`;
+    for(const e of es){
+      if(e.t==='circle')body+=`<circle cx="${n5(e.cx)}" cy="${n5(-e.cy)}" r="${n5(e.r)}"/>\n`;
+      else body+=`<path d="M${e.pts.map(([x,y])=>n5(x)+','+n5(-y)).join(' L')} Z"/>\n`;
+    }
+    body+='</g>\n';
+  }
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<!-- ${note} -->\n<svg xmlns="http://www.w3.org/2000/svg" width="${w.toFixed(3)}mm" height="${h.toFixed(3)}mm" viewBox="${n5(x0-pad)} ${n5(-y1-pad)} ${n5(w)} ${n5(h)}">\n${body}</svg>\n`;
+}
+function describe(){const P=S.P;return `m=${P.m} mm, alpha=${$('pa').value} deg, backlash=${P.bl} mm, units mm`;}
+
+// ---- zip (stored, no compression) ----
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+const crc32=b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;};
+function makeZip(files){
+  const enc=new TextEncoder(),chunks=[],central=[];let off=0;
+  const d=new Date(),dt=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1))&0xFFFF,dd=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate())&0xFFFF;
+  for(const f of files){
+    const name=enc.encode(f.name),data=enc.encode(f.data),crc=crc32(data);
+    const h=new DataView(new ArrayBuffer(30));
+    [[0,0x04034b50,4],[4,20,2],[6,0x0800,2],[8,0,2],[10,dt,2],[12,dd,2],[14,crc,4],[18,data.length,4],[22,data.length,4],[26,name.length,2],[28,0,2]]
+      .forEach(([o,v,s])=>s===4?h.setUint32(o,v,true):h.setUint16(o,v,true));
+    chunks.push(new Uint8Array(h.buffer),name,data);
+    const c=new DataView(new ArrayBuffer(46));
+    [[0,0x02014b50,4],[4,20,2],[6,20,2],[8,0x0800,2],[10,0,2],[12,dt,2],[14,dd,2],[16,crc,4],[20,data.length,4],[24,data.length,4],[28,name.length,2],[30,0,2],[32,0,2],[34,0,2],[36,0,2],[38,0,4],[42,off,4]]
+      .forEach(([o,v,s])=>s===4?c.setUint32(o,v,true):c.setUint16(o,v,true));
+    central.push(new Uint8Array(c.buffer),name);
+    off+=30+name.length+data.length;
+  }
+  const cSize=central.reduce((a,b)=>a+b.length,0),e=new DataView(new ArrayBuffer(22));
+  [[0,0x06054b50,4],[4,0,2],[6,0,2],[8,files.length,2],[10,files.length,2],[12,cSize,4],[16,off,4],[20,0,2]]
+    .forEach(([o,v,s])=>s===4?e.setUint32(o,v,true):e.setUint16(o,v,true));
+  return new Blob([...chunks,...central,new Uint8Array(e.buffer)],{type:'application/zip'});
+}
+
+// ---- downloads capability ----
+let dl=null;
+const setDlUi=()=>{
+  const ok=!!dl;
+  $('act').querySelector('[value="download"]').disabled=!ok;
+  if(!ok)$('act').value='copy';
+  $('dlAll').hidden=!ok;
+  $('dlNote').textContent=ok?'DXF files download inside a .zip; unzip it to get the .dxf. SVG files download directly.':'Downloads are not available in this view, so exports copy to your clipboard. Paste into a file ending in .dxf or .svg.';
+};
+setDlUi();
+try{window.claude?.use?.('downloads').then(d=>{dl=d;setDlUi();},()=>{dl=null;setDlUi();});}catch(e){}
+const slug=s=>s.toLowerCase().replace(/[^a-z0-9.]+/g,'-').replace(/^-|-$/g,'');
+function fileBase(label){
+  const P=S.P,p=S.uniq.find(u=>u.name===label);
+  const tag=p?`${p.g.N}T-`:'';
+  return slug(`${{spur:'spur',internal:'ring-pinion',planet:'planetary'}[mode]}-${label}-${tag}m${P.m}`);
+}
+async function save(filename,data,label){
+  try{await dl.save({filename,data});$('toast').textContent=`${label} saved.`;}
+  catch(err){
+    const code=err&&err.code;
+    $('toast').textContent=code==='declined'?'Download cancelled.':code==='rate_limited'?'Another download prompt is open. Finish it, then try again.':`Download failed (${code||'unknown'}). Switched to copy.`;
+    if(!['declined','rate_limited'].includes(code)){dl=null;setDlUi();}
+  }
+}
+function emit(label,ents){
+  const fmt=$('fmt').value,txt=fmt==='dxf'?toDxf(ents):toSvg(ents,`${label}, ${describe()}`);
+  const ta=$('out');ta.value=txt;const name=`${label} ${fmt.toUpperCase()}`;
+  if($('act').value==='download'&&dl){
+    const base=fileBase(label);
+    if(fmt==='svg')save(base+'.svg',txt,base+'.svg');
+    else save(base+'.zip',makeZip([{name:base+'.dxf',data:txt}]),base+'.dxf (in .zip)');
+    return;
+  }
+  const fallback=()=>{ta.focus();ta.select();$('toast').textContent=`${name} is in the box. Select all and copy.`;};
+  try{navigator.clipboard.writeText(txt).then(()=>{$('toast').textContent=`${name} copied, ${txt.length.toLocaleString()} characters.`;},fallback);}catch(e){fallback();}
+}
+let exportJobs=[];
+$('dlAll').addEventListener('click',()=>{
+  if(!dl)return;
+  const files=[];
+  for(const [label,fn] of exportJobs){
+    const ents=fn(),base=fileBase(label);
+    files.push({name:base+'.dxf',data:toDxf(ents)},{name:base+'.svg',data:toSvg(ents,`${label}, ${describe()}`)});
+  }
+  const spec=['Involute Gear Bench export',describe(),'',...[...$('spec').querySelectorAll('tr')].map(tr=>[...tr.children].map(c=>c.textContent).join('\t')),'',...[...$('notes').querySelectorAll('li')].map(li=>'- '+li.textContent)].join('\n');
+  files.push({name:'specs.txt',data:spec});
+  const name=slug(`${{spur:'spur-pair',internal:'ring-pinion',planet:'planetary'}[mode]}-m${S.P.m}`)+'.zip';
+  save(name,makeZip(files),`${name} (${files.length} files)`);
+});
+function buildExportButtons(){
+  const parts=$('exParts'),asm=$('exAsm');parts.innerHTML='';asm.innerHTML='';
+  exportJobs=[];
+  const add=(host,label,fn)=>{exportJobs.push([label,fn]);const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>emit(label,fn()));host.appendChild(b);};
+  S.uniq.forEach(p=>add(parts,p.name,()=>partEntities(p,false)));
+  if(mode==='planet')add(parts,'Carrier plate',()=>carrierEntities(false));
+  add(asm,'Assembly as shown',()=>{const ps=placed(theta);const e=ps.flatMap(p=>partEntities(p,true));return mode==='planet'?e.concat(carrierEntities(true)):e;});
+  add(asm,'Cut sheet, spaced out',()=>{
+    const out=[];let x=0;const gap=Math.max(3,2*S.P.m);
+    const items=mode==='planet'?[...S.parts.filter(p=>p.id!=='R'),S.parts.find(p=>p.id==='R')]:S.parts;
+    for(const p of items){const e=extent(p);x+=e;const q={...p,cx:x,cy:0,rot:0};out.push(...partEntities(q,true));x+=e+gap;}
+    return out;
+  });
+}
+
+// ---------- set finder ----------
+const STD_MODULES=[0.5,0.6,0.7,0.8,1,1.25,1.5,2,2.5,3,4,5,6,8,10];
+let lastFound=[];
+function finder(){
+  const box=$('finder');
+  box.hidden=mode==='spur'; if(mode==='spur')return;
+  document.querySelectorAll('[data-fp]').forEach(e=>e.hidden=mode!=='planet');
+  const P=common(), fix=$('fix').value;
+  const od=num('fOd',100,5), target=num('fRatio',4,1.0001), tol=num('fTol',3,0)/100;
+  const wallMin=num('fWall',4,0.1), minZ=int('fMinZ',17,6);
+  const nmin=Math.min(int('fNmin',3,1),int('fNmax',5,1)), nmax=Math.max(int('fNmin',3,1),int('fNmax',5,1));
+  const gapMin={14.5:16,20:12,25:10}[$('pa').value];
+  const mods=$('fMod').value==='cur'?[P.m]:STD_MODULES;
+  const ratioOf=(zs,zr)=>fix==='ring'?1+zr/zs:fix==='carrier'?zr/zs:1+zs/zr;
+  $('fIntro').textContent=mode==='internal'
+    ? 'Every ring and pinion that fits the OD with your rim wall, closest ratio first. Ratio = ring ÷ pinion.'
+    : {ring:'Ring held, sun in, carrier out. Ratio = 1 + ring ÷ sun.',carrier:'Carrier held, sun in, ring out (reversing). Ratio = ring ÷ sun.',sun:'Sun held, ring in, carrier out. Ratio = 1 + sun ÷ ring, so it can only reach 1 to 2.'}[fix]+' Closest ratio first.';
+  const out=[];
+  for(const m of mods){
+    const zrMax=Math.floor((od/2-wallMin-(1+P.c)*m)*2/m);
+    for(let zr=zrMax;zr>=Math.max(minZ+gapMin,zrMax-6);zr--){
+      const wall=od/2-(m*zr/2+(1+P.c)*m);
+      if(mode==='internal'){
+        for(let zp=minZ;zp<=zr-gapMin;zp++){
+          const ratio=zr/zp,err=ratio/target-1;
+          if(Math.abs(err)<=tol)out.push({m,zr,zp,ratio,err,wall});
+        }
+      }else{
+        for(let zs=minZ;zs<=zr-2*minZ;zs++){
+          if((zr-zs)%2)continue;
+          const zp=(zr-zs)/2;
+          if(zr-zp<gapMin)continue;
+          const ratio=ratioOf(zs,zr),err=ratio/target-1;
+          if(Math.abs(err)>tol)continue;
+          const ac=m*(zs+zp)/2, tipR=m*zp/2+m, ns=[];
+          for(let n=nmin;n<=nmax;n++){
+            if((zs+zr)%n)continue;
+            if(n>1&&2*ac*Math.sin(Math.PI/n)-2*tipR<0.5*m)continue;
+            ns.push(n);
+          }
+          if(ns.length)out.push({m,zr,zs,zp,ns,ratio,err,wall});
+        }
+      }
+    }
+  }
+  out.sort((a,b)=>Math.abs(a.err)-Math.abs(b.err)||b.m-a.m||b.wall-a.wall);
+  const rows=out.slice(0,60); lastFound=rows;
+  const pct=e=>Math.abs(e)<5e-5?'exact':(e>0?'+':'')+(e*100).toFixed(2)+'%';
+  const isCur=r=>Math.abs(r.m-P.m)<1e-9&&(mode==='internal'
+    ? r.zr===int('zri',0,0)&&r.zp===int('zpi',0,0)
+    : r.zs===int('zs',0,0)&&r.zp===int('zp',0,0));
+  if(!rows.length){
+    $('fSummary').textContent='';
+    $('fTable').innerHTML=`<tbody><tr><td class="empty">No sets land within ${(tol*100).toFixed(1)}% of ${target} : 1 at a ${od} mm OD. Widen the tolerance, lower the minimum teeth or rim wall, or try a larger OD.${mode==='planet'&&fix==='sun'&&target>2?' With the sun held, the ratio can never exceed 2.':''}</td></tr></tbody>`;
+    return;
+  }
+  $('fSummary').textContent=`${out.length} set${out.length===1?'':'s'} found${out.length>rows.length?`, showing the closest ${rows.length}`:''}. Use loads it into the bench at your ${od} mm OD.`;
+  const head=mode==='internal'
+    ? '<th>Module</th><th>Pinion</th><th>Ring</th><th>Ratio</th><th>Error</th><th>Rim wall</th><th></th>'
+    : '<th>Module</th><th>Sun</th><th>Planet</th><th>Ring</th><th>Planets</th><th>Ratio</th><th>Error</th><th>Rim wall</th><th></th>';
+  const body=rows.map((r,i)=>{
+    const e=`<td class="${Math.abs(r.err)<5e-5?'exact':'err'}">${pct(r.err)}</td>`;
+    const tail=`<td>${r.ratio.toFixed(4)}</td>${e}<td>${r.wall.toFixed(2)}</td><td><button type="button" data-use="${i}">Use</button></td>`;
+    return `<tr class="${isCur(r)?'cur':''}"><td>${r.m}</td>`+(mode==='internal'
+      ? `<td>${r.zp}</td><td>${r.zr}</td>${tail}`
+      : `<td>${r.zs}</td><td>${r.zp}</td><td>${r.zr}</td><td>${r.ns.join(', ')}</td>${tail}`)+'</tr>';
+  }).join('');
+  $('fTable').innerHTML=`<thead><tr>${head}</tr></thead><tbody>${body}</tbody>`;
+}
+$('fTable').addEventListener('click',e=>{
+  const b=e.target.closest('[data-use]'); if(!b)return;
+  const r=lastFound[+b.dataset.use]; if(!r)return;
+  $('mod').value=r.m;
+  if(mode==='internal'){$('zpi').value=r.zp;$('zri').value=r.zr;$('odi').value=$('fOd').value;}
+  else{$('zs').value=r.zs;$('zp').value=r.zp;$('np').value=r.ns.includes(int('np',3,1))?int('np',3,1):r.ns[r.ns.length-1];$('od').value=$('fOd').value;}
+  theta=0; build();
+  $('toast').textContent='';
+  document.querySelector('.stage').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'nearest'});
+});
+['fRatio','fTol','fWall','fMinZ','fNmin','fNmax','fMod'].forEach(id=>$(id).addEventListener('input',finder));
+$('fOd').addEventListener('input',()=>{const t=mode==='internal'?'odi':'od';if($('fOd').value!=='')$(t).value=$('fOd').value;build();});
+
+// ---------- wiring ----------
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
+  mode=b.dataset.mode;
+  document.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  document.querySelectorAll('fieldset[data-for]').forEach(f=>f.hidden=f.dataset.for!==mode);
+  theta=0;build();
+  try{localStorage.setItem('gearbench-mode',mode);}catch(e){}
+}));
+document.querySelectorAll('.rail input,.rail select').forEach(el=>{if(el.id!=='rpm')el.addEventListener('input',build);});
+$('rpm').addEventListener('input',rpmChip);
+['lPitch','lBase','lLoA'].forEach(id=>$(id).addEventListener('change',draw));
+const setPlay=()=>$('play').textContent=playing?'Pause':'Run';
+$('play').addEventListener('click',()=>{playing=!playing;setPlay();});
+$('step').addEventListener('click',()=>{theta+=Math.PI/S.inputN;draw();});
+window.addEventListener('resize',fitView);
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',draw);
+new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+let saved=null;try{saved=localStorage.getItem('gearbench-mode');}catch(e){}
+setPlay();
+const startBtn=document.querySelector(`[data-mode="${saved||'planet'}"]`)||document.querySelector('[data-mode="planet"]');
+startBtn.click();
+requestAnimationFrame(tick);
+})();
+</script>
+
+</body></html>
